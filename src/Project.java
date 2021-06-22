@@ -11,13 +11,10 @@ public class Project {
 
     public Project () throws IOException {
         memory = new String[initMemory("Program 1.txt", "Program 2.txt", "Program 3.txt")];
-        //addFile("Program 1.txt");
-        //addFile("Program 2.txt");
-        //addFile("Program 3.txt");
+        //addFile("Program 1.txt", 1);
+        //addFile("Program 2.txt", 2);
+        //addFile("Program 3.txt", 3);
     }
-
-
-
 
     public static int initMemory (String file1, String file2, String file3) throws IOException {
         int memSize = 0;
@@ -58,7 +55,7 @@ public class Project {
 
     public boolean variableInMem (String value){
         for(int i=0; i< memory.length && memory[i] != null; i++){
-            String[] curr = memory[i].split("=");
+            String[] curr = memory[i].split(" = ");
                 if(curr[0].equals(value))
                     return true;
         }
@@ -67,7 +64,7 @@ public class Project {
 
     public String getValue (String variable){
         for(int i=0; i< memory.length && memory[i] != null; i++){
-            String[] curr = memory[i].split("=");
+            String[] curr = memory[i].split(" = ");
             if(curr[0].equals(variable))
                 return curr[1];
         }
@@ -76,7 +73,7 @@ public class Project {
 
     public int indexOf (String variable){
         for(int i=0; i< memory.length && memory[i] != null; i++){
-            String[] curr = memory[i].split("=");
+            String[] curr = memory[i].split(" = ");
             if(curr[0].equals(variable))
                 return i;
         }
@@ -101,17 +98,20 @@ public class Project {
     }
 
     public void printMem (){
+        System.out.println("Memory content: ");
         for(int i=0; i< memory.length && memory[i] != null; i++){
             System.out.println(memory[i]);
         }
     }
 
-    public void addFile (String file) throws IOException {
+    public void addFile (String file, int fileNo) throws IOException {
         FileReader fr = new FileReader(file);
         BufferedReader br = new BufferedReader(fr);
         String current = br.readLine();
+        int counter = 0;
+        writeMem("Process " + fileNo);
         while(current != null){
-            writeMem(current);
+            writeMem("Instruction " + counter++ + " " + current);
             current = br.readLine();
         }
     }
@@ -132,10 +132,10 @@ public class Project {
 
     public void assign(String variable, Object value){
         if(variableInMem(variable)){
-            writeMem(variable+"="+value, indexOf(variable));
+            writeMem(variable+" = "+value, indexOf(variable));
         }
         else
-            writeMem(variable+"="+value);
+            writeMem(variable+" = "+value);
     }
 
     public void writeFile(String file, String s){
@@ -168,13 +168,17 @@ public class Project {
 
     public void add (String x, String y){
         double result = Double.parseDouble(getValue(x)) + Double.parseDouble(getValue(y));
-        writeMem(x+"="+result, indexOf(x));
+        writeMem(x+" = "+result, indexOf(x));
     }
 
+
     public void parser() throws IOException {
-        for(int i=0; i< memory.length && memory[i] != null; i++){
+        for(int i = 0; i< memory.length && memory[i] != null; i++){
             String[] instruction = readMem(i).split(" ");
-            for(int j = 0; j<instruction.length; j++){
+            if(instruction[0].contains("Process"))
+                continue;
+
+            for(int j = 2; j<instruction.length; j++){
                 if(instruction[j].equals("assign")) {
                     if(instruction[j+2].equals("input")){
                         assign(instruction[j+1], input());
@@ -206,6 +210,7 @@ public class Project {
     //MAIN METHOD
     public static void main(String [] args) throws IOException {
         Project pr = new Project();
-        pr.parser();
+        // pr.parser();
+        // pr.printMem();
     }
 }
