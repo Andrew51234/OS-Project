@@ -50,7 +50,7 @@ public class Project {
             memSize++;
             current3 = br3.readLine();
         }
-        return memSize;
+        return memSize + 3;
     }
 
     public boolean variableInMem (String value){
@@ -108,7 +108,7 @@ public class Project {
         FileReader fr = new FileReader(file);
         BufferedReader br = new BufferedReader(fr);
         String current = br.readLine();
-        int counter = 0;
+        int counter = 1;
         writeMem("Process " + fileNo);
         while(current != null){
             writeMem("Instruction " + counter++ + " " + current);
