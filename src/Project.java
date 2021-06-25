@@ -464,7 +464,12 @@ public class Project {
         boolean p2Done = false;
         boolean p3Done = false;
 
+        System.out.println("--------------------------------------------------------------");
+        System.out.println("Going To First Slice; Slice No. " + ((this.clk /2) + 1));
+        System.out.println("--------------------------------------------------------------");
+
         while(!this.queue.isEmpty()){
+
             System.out.println("Current CLK is: " + this.clk);
             String[] instruction = this.queue.get(0);
             this.queue.remove(0);
@@ -529,22 +534,26 @@ public class Project {
             }
 
             if(p1Quanta == this.instructionSizes[0] && !p1Done){
-                System.out.println("Program 1 has ended. It took " + this.clk + " clk cycles");
+                System.out.println("Program 1 has ended. It took " + (this.clk + 1 ) + " clk cycles");
                 p1Done = true;
             }
             if(p2Quanta == this.instructionSizes[1] && !p2Done){
-                System.out.println("Program 2 has ended. It took " + this.clk + " clk cycles");
+                System.out.println("Program 2 has ended. It took " + (this.clk + 1 ) + " clk cycles");
                 p2Done = true;
             }
             if(p3Quanta == this.instructionSizes[2] && !p3Done){
-                System.out.println("Program 3 has ended. It took " + this.clk + " clk cycles");
+                System.out.println("Program 3 has ended. It took " + (this.clk + 1 ) + " clk cycles");
                 p3Done = true;
             }
 
-            if(counter == 2){
+            if(counter == 2 && !this.queue.isEmpty()){
                 counter = 0;
                 System.out.println("--------------------------------------------------------------");
-                System.out.println("Going To Next Slice; Slice No. " + (this.clk /2) + 1);
+                System.out.println("Going To Next Slice; Slice No. " + ((this.clk /2) + 2));
+                System.out.println("--------------------------------------------------------------");
+            }else if(this.queue.isEmpty()){
+                System.out.println("--------------------------------------------------------------");
+                System.out.println("Finished.");
                 System.out.println("--------------------------------------------------------------");
             }else{
                 System.out.println("--------------------");
@@ -569,10 +578,8 @@ public class Project {
 
     public int indexOf2 (String variable, int process){
 
-        String[] pcb = getPCB(process);
-
-        int lowerBound = Integer.parseInt(pcb[3].split("in Boundary: ")[1]);
-        int upperBound = Integer.parseInt(pcb[4].split("ax Boundary: ")[1]);
+        int lowerBound = getMinBoundary(process);
+        int upperBound = getMaxBoundary(process);
 
         while(lowerBound <= upperBound){
 
@@ -616,10 +623,8 @@ public class Project {
     }
     public String getValue2 (String variable, int process){
 
-        String[] pcb = getPCB(process);
-
-        int lowerBound = Integer.parseInt(pcb[3].split("in Boundary: ")[1]);
-        int upperBound = Integer.parseInt(pcb[4].split("ax Boundary: ")[1]);
+        int lowerBound = getMinBoundary(process);
+        int upperBound = getMaxBoundary(process);
 
         while(lowerBound <= upperBound){
             String[] curr = memory[lowerBound].split(" = ");
