@@ -535,21 +535,21 @@ public class Project {
             if(p1Quanta == this.instructionSizes[0] && !p1Done){
                 System.out.println("************************************");
                 System.out.println("Program 1 with ID of "+ getPCB(current)[0].substring(1)
-                        +" has ended. It took " + (this.clk + 1 ) + " clk cycles and " + p1Quanta +" quantas");
+                        +" has ended. It took " + (this.clk + 1 ) + " clk cycles and " + ((this.clk /2) + 1) +" quantas");
                 System.out.println("************************************");
                 p1Done = true;
             }
             if(p2Quanta == this.instructionSizes[1] && !p2Done){
                 System.out.println("************************************");
                 System.out.println("Program 2 with ID of "+ getPCB(current)[0].substring(1)
-                        +" has ended. It took " + (this.clk + 1 ) + " clk cycles and " + p2Quanta +" quantas");
+                        +" has ended. It took " + (this.clk + 1 ) + " clk cycles and " + ((this.clk /2) + 1) +" quantas");
                 System.out.println("************************************");
                 p2Done = true;
             }
             if(p3Quanta == this.instructionSizes[2] && !p3Done){
                 System.out.println("************************************");
                 System.out.println("Program 3 with ID of "+ getPCB(current)[0].substring(1)
-                        +" has ended. It took " + (this.clk + 1 ) + " clk cycles and " + p3Quanta +" quantas");
+                        +" has ended. It took " + (this.clk + 1 ) + " clk cycles and " + ((this.clk /2) + 1) +" quantas");
                 System.out.println("************************************");
                 p3Done = true;
             }
