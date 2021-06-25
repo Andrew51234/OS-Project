@@ -516,7 +516,6 @@ public class Project {
                     index = indexOf2(instruction[1], Integer.parseInt(instruction[3]));
                     if(index == -1)
                         index = indexOf2(" ", Integer.parseInt(instruction[3]));
-                    System.out.println("Index No.: " + index + ": " + readMem(index));
                     assign2(instruction[1], readFile(getValue(instruction[2])), Integer.parseInt(instruction[3])); break;
 
                 case "1":
@@ -534,15 +533,24 @@ public class Project {
             }
 
             if(p1Quanta == this.instructionSizes[0] && !p1Done){
-                System.out.println("Program 1 has ended. It took " + (this.clk + 1 ) + " clk cycles");
+                System.out.println("************************************");
+                System.out.println("Program 1 with ID of "+ getPCB(current)[0].substring(1)
+                        +" has ended. It took " + (this.clk + 1 ) + " clk cycles and " + p1Quanta +" quantas");
+                System.out.println("************************************");
                 p1Done = true;
             }
             if(p2Quanta == this.instructionSizes[1] && !p2Done){
-                System.out.println("Program 2 has ended. It took " + (this.clk + 1 ) + " clk cycles");
+                System.out.println("************************************");
+                System.out.println("Program 2 with ID of "+ getPCB(current)[0].substring(1)
+                        +" has ended. It took " + (this.clk + 1 ) + " clk cycles and " + p2Quanta +" quantas");
+                System.out.println("************************************");
                 p2Done = true;
             }
             if(p3Quanta == this.instructionSizes[2] && !p3Done){
-                System.out.println("Program 3 has ended. It took " + (this.clk + 1 ) + " clk cycles");
+                System.out.println("************************************");
+                System.out.println("Program 3 with ID of "+ getPCB(current)[0].substring(1)
+                        +" has ended. It took " + (this.clk + 1 ) + " clk cycles and " + p3Quanta +" quantas");
+                System.out.println("************************************");
                 p3Done = true;
             }
 
@@ -574,6 +582,7 @@ public class Project {
             index = indexOf2(" ", process);
             writeMem(variable + " = " + value, index);
         }
+        System.out.println("Output: " + readMem(index));
     }
 
     public int indexOf2 (String variable, int process){
@@ -598,11 +607,10 @@ public class Project {
     public void print2 (String value, int process){
         int index = indexOf2(value, process);
         if(index > 1){
-            System.out.println("Index No.: " + index + " Print "+ value);
-            System.out.println(getValue2(value, process));
+            System.out.println("Output: " + getValue2(value, process));
         }
         else
-            System.out.println(value);
+            System.out.println("Output: " + value);
     }
     public String readFile2 (String f, int process) throws IOException {
         int index = indexOf2(f, process);
