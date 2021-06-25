@@ -9,14 +9,22 @@ public class Project {
 
     private static String[] memory;
 
+    int clk;
+    ArrayList<String[]> queue;
+    int[] instructionSizes = new int[]{0,0,0};
+
     public Project () throws IOException {
         memory = new String[initMemory("Program 1.txt", "Program 2.txt", "Program 3.txt")];
-        //addFile("Program 1.txt");
-        //addFile("Program 2.txt");
-        //addFile("Program 3.txt");
+        addFile("Program 1.txt");
+        addFile("Program 2.txt");
+        addFile("Program 3.txt");
+        clk = 0;
+        queue = new ArrayList<>(instructionNumber("Program 1.txt") +
+                instructionNumber("Program 2.txt") + instructionNumber("Program 3.txt"));
+
     }
 
-    public static int initMemory (String file1, String file2, String file3) throws IOException {
+    public int initMemory (String file1, String file2, String file3) throws IOException {
         int memSize = 0;
         FileReader fr1 = new FileReader(file1);
         BufferedReader br1 = new BufferedReader(fr1);
@@ -32,6 +40,8 @@ public class Project {
             }
             memSize++;
             current1 = br1.readLine();
+
+            this.instructionSizes[0]++;
         }
 
         FileReader fr2 = new FileReader(file2);
@@ -48,6 +58,8 @@ public class Project {
             }
             memSize++;
             current2 = br2.readLine();
+
+            this.instructionSizes[1]++;
         }
 
         FileReader fr3 = new FileReader(file3);
@@ -64,6 +76,8 @@ public class Project {
             }
             memSize++;
             current3 = br3.readLine();
+
+            this.instructionSizes[2]++;
         }
         return memSize + 15; // instructions + variables + the 3 PCBs
     }
@@ -117,7 +131,7 @@ public class Project {
 
     public static void writeMem(String value){
         for(int i =0; i< memory.length; i++){
-            if(memory[i]== null){
+            if(memory[i] == null){
                 memory[i] = value;
                 break;
             }
@@ -125,6 +139,7 @@ public class Project {
     }
 
     public static void writeMem(String value, int location){
+
         memory[location] = value;
     }
 
@@ -181,18 +196,18 @@ public class Project {
         while(current1 != null) {
             String[] instruction = current1.split(" ");
             if(instruction[0].equals("assign")){
-                if (!vars.contains(instruction[1])) {
-                    writeMem(instruction[1] + " = ");
-                    vars.add(instruction[1]);
-                }
+                writeMem(" ");
+                vars.add(instruction[1]);
             }
             current1 = br1.readLine();
         }
     }
 
     public void print (String value){
-        if(variableInMem(value))
+        if(variableInMem(value)){
+            System.out.println("");
             System.out.println(getValue(value));
+        }
         else
             System.out.println(value);
     }
@@ -319,18 +334,18 @@ public class Project {
         return Integer.parseInt(PCB[4].substring(14));
     }
 
-    public static void setStatus (int process){
+    public static void setStatus (int process, boolean state){
         String num = "";
         num += process;
         for (int i = 0; i< memory.length && memory[i] != null; i++){
             if((readMem(i).charAt(0) == 'P' && readMem(i+1).equals("Status: Running")) || (readMem(i).charAt(0) == 'P' && readMem(i+1).equals("Status: notRunning"))){
                 if(readMem(i).charAt(1) == num.charAt(0)){
-                    if(readMem(i+1).equals("Status: Running"))
-                        writeMem("Status: notRunning", i+1);
 
-                    else if(readMem(i+1).equals("Status: notRunning"))
+                    if(state){
                         writeMem("Status: Running", i+1);
-
+                    }else{
+                        writeMem("Status: notRunning", i+1);
+                    }
                 }
             }
         }
@@ -348,13 +363,320 @@ public class Project {
         }
     }
 
+    public void reArrangeQueue() throws IOException {
+        int p1InsNo = this.instructionSizes[0];
+        int p2InsNo = this.instructionSizes[1];
+        int p3InsNo = this.instructionSizes[2];
 
+        ArrayList<String[]> sortedQueue = new ArrayList<>(this.queue.size());
+
+        int j = 0;
+        int k = p1InsNo;
+        int l = p1InsNo + p2InsNo;
+
+        int[] counters = new int[]{0,0,0};
+
+        for(int i = 0; i < (Math.max(Math.max(p1InsNo, p2InsNo), p3InsNo))/2; i++){
+
+            while(j < p1InsNo && counters[0] < 2){
+                sortedQueue.add(this.queue.get(j));
+                counters[0]++;
+                j++;
+            }
+            counters[0] = 0;
+
+            while(k < (p1InsNo + p2InsNo) && counters[1] < 2){
+                sortedQueue.add(this.queue.get(k));
+                k++;
+                counters[1]++;
+            }
+            counters[1] = 0;
+
+            while(l < this.queue.size() && counters[2] < 2){
+                sortedQueue.add(this.queue.get(l));
+                l++;
+                counters[2]++;
+            }
+            counters[2] = 0;
+        }
+        this.queue = sortedQueue;
+    }
+
+    /* 0 = assign ----> input
+    0.5 = assign ----> readFile
+    1 = print
+    2 = readfile
+    3 = writeFile
+    4 = add
+    */
+
+    public void schedulerRR() throws IOException {
+        int programNo = 0;
+
+        for(int i = 0; i < memory.length && memory[i] != null; i++){
+
+            String[] instruction = readMem(i).split(" ");
+
+            if(instruction.length == 0)
+                continue;
+
+            if(instruction[0].charAt(0) == 'P' && instruction[0].length() == 2){
+                programNo = Integer.parseInt("" + instruction[0].charAt(1));
+            }
+
+            if(!instruction[0].equals("Instruction"))
+                continue;
+
+            switch(instruction[2]){
+                case "assign":
+                    if(instruction[2+2].equals("input")){
+                        this.queue.add(new String[]{"0", instruction[2+1], ""+programNo, ""+i}); break;
+                    }
+                    if(instruction[2+2].equals("readFile")){
+                        this.queue.add(new String[]{"0.5", instruction[2+1], instruction[2+3], ""+programNo, ""+i}); break;
+                    }
+
+
+                case "print":
+                    this.queue.add(new String[]{"1", instruction[2+1], ""+programNo, ""+i}); break;
+
+                case "readFile":
+                    this.queue.add(new String[]{"2", getValue(instruction[2 + 1]), ""+programNo, ""+i}); break;
+
+                case "writeFile":
+                    this.queue.add(new String[]{"3", instruction[2+1], instruction[2+2], ""+programNo, ""+i}); break;
+
+                case "add": this.queue.add(new String[]{"4", instruction[2+1],instruction[2+2], ""+programNo, ""+i}); break;
+            }
+        }
+
+        this.reArrangeQueue();
+    }
+
+    public void dequeue() throws IOException {
+
+        int counter = 1;
+        int p1Quanta = 0;
+        int p2Quanta = 0;
+        int p3Quanta = 0;
+
+        boolean p1Done = false;
+        boolean p2Done = false;
+        boolean p3Done = false;
+
+        while(!this.queue.isEmpty()){
+            System.out.println("Current CLK is: " + this.clk);
+            String[] instruction = this.queue.get(0);
+            this.queue.remove(0);
+            int index = Integer.parseInt(instruction[instruction.length - 1]);
+
+            System.out.println("Index No.: " + index + " -------> " + readMem(index));
+            System.out.println("Process ID: " + getPCB(Integer.parseInt(instruction[instruction.length - 2]))[0].charAt(1));
+
+            if(Integer.parseInt(instruction[instruction.length - 2]) == 1){
+                p1Quanta++;
+            }
+            if(Integer.parseInt(instruction[instruction.length - 2]) == 2){
+                p2Quanta++;
+            }
+            if(Integer.parseInt(instruction[instruction.length - 2]) == 3){
+                p3Quanta++;
+            }
+
+            int current = Integer.parseInt(instruction[instruction.length - 2]);
+
+            if(current == 1){
+                incrementPC(current);
+                setStatus(current, true);
+                setStatus(2, true);
+                setStatus(3, true);
+            }else if(current == 2) {
+                incrementPC(current);
+                setStatus(current, true);
+                setStatus(1, true);
+                setStatus(3, true);
+            }else{
+                incrementPC(current);
+                setStatus(current, true);
+                setStatus(1, true);
+                setStatus(2, true);
+            }
+
+            switch(instruction[0]){
+                case "0":
+                    assign2(instruction[1], input(), Integer.parseInt(instruction[2]));
+                    break;
+
+                case "0.5":
+                    index = indexOf2(instruction[1], Integer.parseInt(instruction[3]));
+                    if(index == -1)
+                        index = indexOf2(" ", Integer.parseInt(instruction[3]));
+                    System.out.println("Index No.: " + index + ": " + readMem(index));
+                    assign2(instruction[1], readFile(getValue(instruction[2])), Integer.parseInt(instruction[3])); break;
+
+                case "1":
+                    print2(instruction[1], Integer.parseInt(instruction[2])); break;
+
+                case "2":
+                    readFile2(instruction[1], Integer.parseInt(instruction[2])); break;
+
+                case "3":
+                    writeFile(getValue2(instruction[1], Integer.parseInt(instruction[3])),
+                            getValue2(instruction[2], Integer.parseInt(instruction[3]))); break;
+
+                case "4":
+                    add2(instruction[1], instruction[2], Integer.parseInt(instruction[3])); break;
+            }
+
+            if(p1Quanta == this.instructionSizes[0] && !p1Done){
+                System.out.println("Program 1 has ended. It took " + this.clk + " clk cycles");
+                p1Done = true;
+            }
+            if(p2Quanta == this.instructionSizes[1] && !p2Done){
+                System.out.println("Program 2 has ended. It took " + this.clk + " clk cycles");
+                p2Done = true;
+            }
+            if(p3Quanta == this.instructionSizes[2] && !p3Done){
+                System.out.println("Program 3 has ended. It took " + this.clk + " clk cycles");
+                p3Done = true;
+            }
+
+            if(counter == 2){
+                counter = 0;
+                System.out.println("--------------------------------------------------------------");
+                System.out.println("Going To Next Slice; Slice No. " + (this.clk /2) + 1);
+                System.out.println("--------------------------------------------------------------");
+            }else{
+                System.out.println("--------------------");
+            }
+            counter++;
+            this.clk++;
+
+        }
+    }
+
+    public void assign2(String variable, Object value, int process){
+        int index = indexOf2(variable, process);
+
+        if(index > -1){
+            writeMem(variable+" = "+value, index);
+        }
+        else{
+            index = indexOf2(" ", process);
+            writeMem(variable + " = " + value, index);
+        }
+    }
+
+    public int indexOf2 (String variable, int process){
+
+        String[] pcb = getPCB(process);
+
+        int lowerBound = Integer.parseInt(pcb[3].split("in Boundary: ")[1]);
+        int upperBound = Integer.parseInt(pcb[4].split("ax Boundary: ")[1]);
+
+        while(lowerBound <= upperBound){
+
+            String[] curr = memory[lowerBound].split(" = ");
+            if(curr[0].equals(variable)){
+                return lowerBound;
+            }
+            lowerBound++;
+        }
+        return -1;
+    }
+    public void add2 (String x, String y, int process){
+        double result = Double.parseDouble(getValue2(x, process)) + Double.parseDouble(getValue2(y, process));
+        writeMem(x + " = " + result, indexOf2(x, process));
+    }
+    public void print2 (String value, int process){
+        int index = indexOf2(value, process);
+        if(index > 1){
+            System.out.println("Index No.: " + index + " Print "+ value);
+            System.out.println(getValue2(value, process));
+        }
+        else
+            System.out.println(value);
+    }
+    public String readFile2 (String f, int process) throws IOException {
+        int index = indexOf2(f, process);
+
+        System.out.println("Index No.: " + index + " ReadFile "+ f);
+        String file = f;
+        Path path = Paths.get(file);
+        BufferedReader br = Files.newBufferedReader(path);
+        String instructions = "";
+        String current = br.readLine();
+        while(current != null){
+            instructions += current;
+            instructions += "\n";
+            current = br.readLine();
+        }
+        br.close();
+        return instructions;
+    }
+    public String getValue2 (String variable, int process){
+
+        String[] pcb = getPCB(process);
+
+        int lowerBound = Integer.parseInt(pcb[3].split("in Boundary: ")[1]);
+        int upperBound = Integer.parseInt(pcb[4].split("ax Boundary: ")[1]);
+
+        while(lowerBound <= upperBound){
+            String[] curr = memory[lowerBound].split(" = ");
+            if(curr[0].equals(variable))
+                return curr[1];
+            lowerBound++;
+        }
+        return null;
+    }
+
+    public static int instructionNumber(String file) throws IOException {
+        int size = 0;
+        FileReader fr = new FileReader(file);
+        BufferedReader br = new BufferedReader(fr);
+        String current = br.readLine();
+        while(current != null) {
+            size++;
+            current = br.readLine();
+        }
+        return size;
+    }
+
+    public void printQueue(){
+
+        System.out.print("{");
+        for(int i = 0; i < this.queue.size(); i++){
+            System.out.print("[");
+            for(int j = 0; j < this.queue.get(i).length; j++){
+                System.out.print(this.queue.get(i)[j]);
+                if((j + 1) < this.queue.get(i).length){
+                    System.out.print(", ");
+                }
+            }
+            System.out.print("]");
+            if((i + 1) < this.queue.size()){
+                System.out.print(", ");
+            }
+        }
+        System.out.print("}");
+        System.out.println();
+    }
 
 
 
     //MAIN METHOD
     public static void main(String [] args) throws IOException {
         Project pr = new Project();
+        //System.out.println(instructionNumber("Program 1.txt"));
+        pr.printMem();
+        pr.schedulerRR();
+        pr.dequeue();
+        //System.out.println(pr.instructionSizes[0] + " " + pr.instructionSizes[1] + " " + pr.instructionSizes[2]);
+        //pr.printQueue();
+        //pr.printMem();
+
+
+
 
 //        pr.addFile("Program 1.txt");
 //        pr.writeMem("P1");
