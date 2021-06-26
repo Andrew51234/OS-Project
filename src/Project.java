@@ -455,10 +455,11 @@ public class Project {
 
     public void dequeue() throws IOException {
 
-        int counter = 1;
-        int p1Quanta = 0;
-        int p2Quanta = 0;
-        int p3Quanta = 0;
+        int quantaCounter = 1;
+        int slice = 1;
+        int p1InstructionCounter = 0;
+        int p2InstructionCounter = 0;
+        int p3InstructionCounter = 0;
 
         boolean p1Done = false;
         boolean p2Done = false;
@@ -478,31 +479,31 @@ public class Project {
             System.out.println("Index No.: " + index + " -------> " + readMem(index));
             System.out.println("Process ID: " + getPCB(Integer.parseInt(instruction[instruction.length - 2]))[0].charAt(1));
 
-            if(Integer.parseInt(instruction[instruction.length - 2]) == 1){
-                p1Quanta++;
+            int currentProcess = Integer.parseInt(instruction[instruction.length - 2]);
+
+            if(currentProcess == 1){
+                p1InstructionCounter++;
             }
-            if(Integer.parseInt(instruction[instruction.length - 2]) == 2){
-                p2Quanta++;
+            if(currentProcess == 2){
+                p2InstructionCounter++;
             }
-            if(Integer.parseInt(instruction[instruction.length - 2]) == 3){
-                p3Quanta++;
+            if(currentProcess == 3){
+                p3InstructionCounter++;
             }
 
-            int current = Integer.parseInt(instruction[instruction.length - 2]);
-
-            if(current == 1){
-                incrementPC(current);
-                setStatus(current, true);
+            if(currentProcess == 1){
+                incrementPC(currentProcess);
+                setStatus(currentProcess, true);
                 setStatus(2, true);
                 setStatus(3, true);
-            }else if(current == 2) {
-                incrementPC(current);
-                setStatus(current, true);
+            }else if(currentProcess == 2) {
+                incrementPC(currentProcess);
+                setStatus(currentProcess, true);
                 setStatus(1, true);
                 setStatus(3, true);
             }else{
-                incrementPC(current);
-                setStatus(current, true);
+                incrementPC(currentProcess);
+                setStatus(currentProcess, true);
                 setStatus(1, true);
                 setStatus(2, true);
             }
@@ -532,41 +533,86 @@ public class Project {
                     add2(instruction[1], instruction[2], Integer.parseInt(instruction[3])); break;
             }
 
-            if(p1Quanta == this.instructionSizes[0] && !p1Done){
-                System.out.println("************************************");
-                System.out.println("Program 1 with ID of "+ getPCB(current)[0].substring(1)
-                        +" has ended. It took " + (this.clk + 1 ) + " clk cycles and " + ((this.clk /2) + 1) +" quantas");
-                System.out.println("************************************");
-                p1Done = true;
-            }
-            if(p2Quanta == this.instructionSizes[1] && !p2Done){
-                System.out.println("************************************");
-                System.out.println("Program 2 with ID of "+ getPCB(current)[0].substring(1)
-                        +" has ended. It took " + (this.clk + 1 ) + " clk cycles and " + ((this.clk /2) + 1) +" quantas");
-                System.out.println("************************************");
-                p2Done = true;
-            }
-            if(p3Quanta == this.instructionSizes[2] && !p3Done){
-                System.out.println("************************************");
-                System.out.println("Program 3 with ID of "+ getPCB(current)[0].substring(1)
-                        +" has ended. It took " + (this.clk + 1 ) + " clk cycles and " + ((this.clk /2) + 1) +" quantas");
-                System.out.println("************************************");
-                p3Done = true;
+            if(quantaCounter < 2 && !this.queue.isEmpty() &&
+                    Integer.parseInt(this.queue.get(0)[this.queue.get(0).length - 2]) == currentProcess){
+                System.out.println("--------------------");
             }
 
-            if(counter == 2 && !this.queue.isEmpty()){
-                counter = 0;
+            if(p1InstructionCounter == this.instructionSizes[0] && !p1Done){
+                System.out.println("************************************");
+                System.out.println("Program 1 with ID of "+ getPCB(currentProcess)[0].substring(1)
+                        +" has ended. It took " + quantaCounter + " quanta(s) in this slice");
+                System.out.println("************************************");
+
+                slice++;
+
+                if(!this.queue.isEmpty()){
+                    System.out.println("--------------------------------------------------------------");
+                    System.out.println("Going To Next Slice; Slice No. " + slice);
+                    System.out.println("--------------------------------------------------------------");
+                }
+                p1Done = true;
+                quantaCounter = 0;
+            }
+            if(p2InstructionCounter == this.instructionSizes[1] && !p2Done){
+                System.out.println("************************************");
+                System.out.println("Program 2 with ID of "+ getPCB(currentProcess)[0].substring(1)
+                        +" has ended. It took " + quantaCounter + " quanta(s) in this slice");
+                System.out.println("************************************");
+
+                slice++;
+
+                if(!this.queue.isEmpty()){
+                    System.out.println("--------------------------------------------------------------");
+                    System.out.println("Going To Next Slice; Slice No. " + slice);
+                    System.out.println("--------------------------------------------------------------");
+                }
+                p2Done = true;
+                quantaCounter = 0;
+            }
+            if(p3InstructionCounter == this.instructionSizes[2] && !p3Done){
+                System.out.println("************************************");
+                System.out.println("Program 3 with ID of "+ getPCB(currentProcess)[0].substring(1)
+                        +" has ended. It took " + quantaCounter + " quanta(s) in this slice");
+                System.out.println("************************************");
+
+                slice++;
+
+                if(!this.queue.isEmpty()){
+                    System.out.println("--------------------------------------------------------------");
+                    System.out.println("Going To Next Slice; Slice No. " + slice);
+                    System.out.println("--------------------------------------------------------------");
+                }
+                p3Done = true;
+                quantaCounter = 0;
+            }
+
+            if(quantaCounter == 2 && !this.queue.isEmpty()){
+                slice++;
+                quantaCounter = 0;
                 System.out.println("--------------------------------------------------------------");
-                System.out.println("Going To Next Slice; Slice No. " + ((this.clk /2) + 2));
+
+                if(p1InstructionCounter != this.instructionSizes[0] && !p1Done && currentProcess == 1){
+                    System.out.println("Program 1 with ID of "+ getPCB(currentProcess)[0].substring(1)
+                            +" took 2 quanta(s) in this clk cycle");
+                }
+                if(p2InstructionCounter != this.instructionSizes[1] && !p2Done && currentProcess == 2){
+                    System.out.println("Program 2 with ID of "+ getPCB(currentProcess)[0].substring(1)
+                            +" took 2 quanta(s) in this clk cycle");
+                }
+                if(p3InstructionCounter != this.instructionSizes[2] && !p3Done && currentProcess == 3){
+                    System.out.println("Program 3 with ID of "+ getPCB(currentProcess)[0].substring(1)
+                            +" took 2 quanta(s) in this clk cycle");
+                }
+
+                System.out.println("Going To Next Slice; Slice No. " + slice);
                 System.out.println("--------------------------------------------------------------");
             }else if(this.queue.isEmpty()){
                 System.out.println("--------------------------------------------------------------");
                 System.out.println("Finished.");
                 System.out.println("--------------------------------------------------------------");
-            }else{
-                System.out.println("--------------------");
             }
-            counter++;
+            quantaCounter++;
             this.clk++;
 
         }
