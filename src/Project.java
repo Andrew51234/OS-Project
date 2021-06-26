@@ -594,15 +594,15 @@ public class Project {
 
                 if(p1InstructionCounter != this.instructionSizes[0] && !p1Done && currentProcess == 1){
                     System.out.println("Program 1 with ID of "+ getPCB(currentProcess)[0].substring(1)
-                            +" took 2 quanta(s) in this clk cycle");
+                            +" took 2 quanta(s) in this slice");
                 }
                 if(p2InstructionCounter != this.instructionSizes[1] && !p2Done && currentProcess == 2){
                     System.out.println("Program 2 with ID of "+ getPCB(currentProcess)[0].substring(1)
-                            +" took 2 quanta(s) in this clk cycle");
+                            +" took 2 quanta(s) in this slice");
                 }
                 if(p3InstructionCounter != this.instructionSizes[2] && !p3Done && currentProcess == 3){
                     System.out.println("Program 3 with ID of "+ getPCB(currentProcess)[0].substring(1)
-                            +" took 2 quanta(s) in this clk cycle");
+                            +" took 2 quanta(s) in this slice");
                 }
 
                 System.out.println("Going To Next Slice; Slice No. " + slice);
